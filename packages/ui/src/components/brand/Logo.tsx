@@ -1,0 +1,47 @@
+import { useId } from "react";
+import { cn } from "../../lib/cn";
+
+/** Path oficial del isotipo (viewBox 648×648), tomado de imagenes/a-futuro-logo-negro.svg */
+export const LOGO_PATH =
+  "m317.46 41.02c0.53-0.01 7.83 14.04 16.21 31.23 8.39 17.19 27.67 55.77 42.85 85.75 15.18 29.98 41.58 82.18 58.66 116 17.09 33.82 39.29 77.7 49.32 97.5 10.04 19.8 28.2 55.69 40.37 79.75 12.17 24.06 22.13 44.42 22.13 45.25 0 0.83-13.61 15.32-30.25 32.22-16.64 16.89-43.97 44.57-60.75 61.51-16.77 16.93-31.17 30.77-32 30.75-0.83-0.03-24-22.54-51.5-50.03-27.5-27.49-49.77-50.2-49.5-50.45 0.28-0.26 13.33 3.31 29 7.93 15.67 4.62 28.56 8.32 28.63 8.23 0.06-0.09-14.05-28.74-62.87-127.16l-31.38 63.25c-17.26 34.79-31.27 63.41-31.13 63.61 0.14 0.2 13.08-3.38 28.75-7.95 15.68-4.57 28.62-8.22 28.78-8.11 0.15 0.11-22.27 22.81-49.82 50.45-31.66 31.76-50.8 50.25-52.02 50.25-1.07 0-2.87-1.24-4-2.75-1.13-1.51-17.21-18.05-35.74-36.75-18.52-18.7-44.86-45.25-83.41-84l114.36-228.23c62.89-125.52 114.78-228.24 115.31-228.25zm-94.11 261.73l-93.1 186.75c57.32 57.35 74.15 73.55 74.37 73 0.22-0.55 25.71-50 56.64-109.89 30.93-59.89 56.69-108.88 57.24-108.88 0.55 0.01 26.08 49.01 56.73 108.89 30.65 59.89 55.91 109.33 56.14 109.88 0.23 0.55 17.06-15.65 37.41-36l36.99-37c-145.29-289.46-187.88-373.5-188.39-373.5-0.51 0-42.82 84.04-94.03 186.75z";
+
+export interface LogoProps {
+  /** Tamaño del isotipo en px. */
+  size?: number;
+  /** gradient = marca; mono = hereda `currentColor`. */
+  tone?: "gradient" | "mono";
+  /** Muestra el wordmark "A Futuro" al lado. */
+  wordmark?: boolean;
+  className?: string;
+  /** El gradiente respira suavemente. */
+  animated?: boolean;
+}
+
+/** Isotipo A Futuro en SVG (escalable, con gradiente de marca animado). */
+export function Logo({ size = 36, tone = "gradient", wordmark, className, animated = true }: LogoProps) {
+  const id = useId();
+  return (
+    <span className={cn("inline-flex items-center gap-3", className)}>
+      <svg width={size} height={size} viewBox="0 0 648 648" aria-label="A Futuro" role="img" className="shrink-0">
+        {tone === "gradient" && (
+          <defs>
+            <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#39BAD0">
+                {animated && <animate attributeName="stop-color" values="#39BAD0;#2A9EC4;#39BAD0" dur="8s" repeatCount="indefinite" />}
+              </stop>
+              <stop offset="100%" stopColor="#0054A2">
+                {animated && <animate attributeName="stop-color" values="#0054A2;#0B6DB8;#0054A2" dur="8s" repeatCount="indefinite" />}
+              </stop>
+            </linearGradient>
+          </defs>
+        )}
+        <path d={LOGO_PATH} fill={tone === "gradient" ? `url(#${id})` : "currentColor"} fillRule="evenodd" />
+      </svg>
+      {wordmark && (
+        <span className="font-display text-[1.05em] font-semibold tracking-tight">
+          A <span className="text-gradient">Futuro</span>
+        </span>
+      )}
+    </span>
+  );
+}

@@ -1,0 +1,9 @@
+@import "@afuturo/ui/styles/fonts.css";
+@import "tailwindcss";
+@import "@afuturo/ui/styles/theme.css";
+@import "@afuturo/ui/styles/base.css";
+@source "../../../packages/ui/src";
+
+/* Overrides del cliente (opcional): p. ej. cambiar el acento sin romper la marca A Futuro.
+:root { --af-c1: #39bad0; --af-c2: #0054a2; }
+*/

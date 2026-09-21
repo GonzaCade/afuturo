@@ -1,0 +1,19 @@
+{
+  "name": "afuturo",
+  "private": true,
+  "version": "0.1.0",
+  "description": "A Futuro — design system, animaciones y onepages de clientes",
+  "workspaces": [
+    "packages/*",
+    "clientes/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w @afuturo/showcase",
+    "build": "npm run build -w @afuturo/showcase",
+    "typecheck": "tsc -p packages/ui/tsconfig.json --noEmit",
+    "nuevo-cliente": "node scripts/nuevo-cliente.mjs"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2"
+  }
+}
