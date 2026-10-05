@@ -1,27 +1,26 @@
 import type { ReactNode } from "react";
 import { Marquee } from "../../animations/Marquee";
 import { Reveal } from "../../animations/Reveal";
-import { Mono } from "../ui/Typography";
+import { Label } from "../ui/Typography";
 import { Container } from "../layout/Section";
 
 export interface LogoCloudProps {
-  /** Logos como nodos (img/svg) o strings (se muestran como wordmarks). */
   logos: (ReactNode | string)[];
   label?: string;
   className?: string;
 }
 
-/** Cinta de logos de clientes/partners/tecnologías. */
+/** Cinta de logos en gris neutro; color al hover. */
 export function LogoCloud({ logos, label = "Confían en nosotros", className }: LogoCloudProps) {
   return (
     <div className={className}>
       <Container>
-        <Reveal className="mb-8 text-center"><Mono>{label}</Mono></Reveal>
+        <Reveal className="mb-6 text-center"><Label>{label}</Label></Reveal>
       </Container>
       <Reveal delay={0.1}>
         <Marquee duration={35} gap="4rem">
           {logos.map((l, i) => (
-            <span key={i} className="flex h-10 items-center text-2xl font-semibold tracking-tight text-paper/40 grayscale transition duration-500 hover:text-paper hover:grayscale-0 [&_img]:h-8 [&_img]:opacity-60 [&_svg]:h-8">
+            <span key={i} className="flex h-10 items-center font-display text-xl font-medium tracking-[-0.02em] text-ink-3 transition-colors duration-300 hover:text-ink [&_img]:h-7 [&_img]:opacity-50 [&_svg]:h-7">
               {l}
             </span>
           ))}

@@ -4,8 +4,7 @@ import { Section } from "../layout/Section";
 import { CountUp } from "../../animations/CountUp";
 import { Stagger } from "../../animations/Reveal";
 import { fadeUp } from "../../animations/variants";
-import { Mono } from "../ui/Typography";
-import { SectionHeading, type SectionHeadingProps } from "../ui/Typography";
+import { Label, SectionHeading, type SectionHeadingProps } from "../ui/Typography";
 
 export interface Stat {
   value: number;
@@ -13,27 +12,29 @@ export interface Stat {
   prefix?: string;
   suffix?: string;
   decimals?: number;
+  /** Se pinta con acento (un solo stat por grilla). */
+  live?: boolean;
 }
 
 export interface StatsProps {
   stats: Stat[];
   heading?: SectionHeadingProps;
   id?: string;
-  tone?: "dark" | "light" | "surface";
-  /** Banda compacta (sin sección propia). */
+  tone?: "canvas" | "surface";
+  /** Sin sección propia. */
   inline?: boolean;
 }
 
-/** Métricas grandes que cuentan al aparecer. */
-export function Stats({ stats, heading, id, tone = "surface", inline }: StatsProps) {
+/** Números grandes como anclas visuales. */
+export function Stats({ stats, heading, id, tone = "canvas", inline }: StatsProps) {
   const grid = (
-    <Stagger className={cn("grid gap-8", stats.length <= 3 ? "sm:grid-cols-3" : "grid-cols-2 lg:grid-cols-4")}>
+    <Stagger className={cn("grid gap-6", stats.length <= 3 ? "sm:grid-cols-3" : "grid-cols-2 lg:grid-cols-4")}>
       {stats.map((s) => (
-        <motion.div key={s.label} variants={fadeUp} className="relative border-l border-line pl-6">
-          <div className="font-display text-5xl font-semibold tracking-tight text-gradient md:text-6xl">
+        <motion.div key={s.label} variants={fadeUp} className="border-l border-line-strong pl-5">
+          <div className={cn("font-display text-display-md font-medium tabular-nums", s.live ? "text-accent" : "text-ink")}>
             <CountUp to={s.value} prefix={s.prefix} suffix={s.suffix} decimals={s.decimals} />
           </div>
-          <Mono className="mt-3 block">{s.label}</Mono>
+          <Label className="mt-3 block">{s.label}</Label>
         </motion.div>
       ))}
     </Stagger>
@@ -41,7 +42,7 @@ export function Stats({ stats, heading, id, tone = "surface", inline }: StatsPro
   if (inline) return grid;
   return (
     <Section id={id} tone={tone} spacing="sm">
-      {heading && <SectionHeading {...heading} align="left" />}
+      {heading && <SectionHeading {...heading} />}
       {grid}
     </Section>
   );

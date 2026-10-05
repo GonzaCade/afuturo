@@ -4,6 +4,7 @@
 @import "@afuturo/ui/styles/base.css";
 @source "../../../packages/ui/src";
 
-/* Overrides del cliente (opcional): p. ej. cambiar el acento sin romper la marca A Futuro.
-:root { --af-c1: #39bad0; --af-c2: #0054a2; }
+/* Overrides del cliente (opcional): cambiar el único acento sin tocar el resto del sistema.
+@theme { --color-accent: #176bff; --color-accent-50: #edf3ff; --color-accent-100: #dbe7ff; --color-accent-200: #b5cfff; --color-accent-600: #0f5ae0; --color-accent-700: #0b47b3; }
+:root { --af-accent: #176bff; }
 */

@@ -1,11 +1,10 @@
 import type { ReactNode } from "react";
 import { motion } from "motion/react";
-import { ChevronDown } from "lucide-react";
 import { cn } from "../../lib/cn";
 import { Container } from "../layout/Section";
-import { Badge } from "../ui/Badge";
+import { Eyebrow } from "../ui/Typography";
 import { Button } from "../ui/Button";
-import { AmbientBackground } from "../ui/Ambient";
+import { StudioBackground } from "../ui/Ambient";
 import { TextReveal } from "../../animations/TextReveal";
 import { Reveal } from "../../animations/Reveal";
 import { Magnetic } from "../../animations/Magnetic";
@@ -13,83 +12,87 @@ import { EASE } from "../../animations/easings";
 
 export interface HeroProps {
   eyebrow?: ReactNode;
-  /** Título. Usar `highlight` para pintar una parte con gradiente. */
   title: string;
+  /** Parte del título en acento. */
   highlight?: string;
   subtitle?: ReactNode;
   primaryCta?: { label: string; href: string };
   secondaryCta?: { label: string; href: string };
-  /** Visual debajo o al lado del texto (mockup, iPhone, imagen). */
+  /** Visual dominante (HeroSurface, ProductStage, iPhone). Ignorado en `layout="cover"`. */
   visual?: ReactNode;
-  /** Layout: `center` (Apple: texto arriba, visual abajo) o `split` (texto izq., visual der.). */
-  layout?: "center" | "split";
-  /** Prueba social bajo los CTAs (estrellas, logos, "+6M usuarios"). */
+  /**
+   * `stack`: texto arriba, visual abajo · `split`: texto izq., visual der. ·
+   * `cover`: `media` a pantalla completa detrás del texto, texto alineado a la izquierda.
+   */
+  layout?: "stack" | "split" | "cover";
+  /** Imagen de fondo a sangre para `layout="cover"` (idealmente foto de estudio sobre blanco). */
+  media?: ReactNode;
+  /** Elementos que flotan sobre la foto (pills, paneles). Solo `cover`. */
+  overlay?: ReactNode;
+  /** Prueba social bajo los CTAs. */
   proof?: ReactNode;
-  /** Flecha de "scroll" al pie. */
-  scrollHint?: boolean;
   className?: string;
   id?: string;
 }
 
-/** Hero de onepage: entrada cinemática (blur + palabras), fondo ambiental, CTAs magnéticos. */
-export function Hero({ eyebrow, title, highlight, subtitle, primaryCta, secondaryCta, visual, layout = "center", proof, scrollHint = true, className, id = "top" }: HeroProps) {
-  const center = layout === "center";
-  let heading: ReactNode = <TextReveal as="span" effect="blur" className="block">{title}</TextReveal>;
-  if (highlight && title.includes(highlight)) {
-    const [a, b] = title.split(highlight);
-    heading = (
-      <>
-        {a && <TextReveal as="span" effect="blur">{a.trimEnd()}</TextReveal>}{a ? " " : ""}
-        <TextReveal as="span" effect="blur" delay={0.2} gradient>{highlight}</TextReveal>
-        {b && <>{" "}<TextReveal as="span" effect="blur" delay={0.35}>{b.trimStart()}</TextReveal></>}
-      </>
+/** Hero: una idea en el título, un visual dominante, dos CTAs. Entrada por palabra. */
+export function Hero({ eyebrow, title, highlight, subtitle, primaryCta, secondaryCta, visual, layout = "stack", media, overlay, proof, className, id = "top" }: HeroProps) {
+  const cover = layout === "cover";
+  const stack = layout === "stack";
+  const heading: ReactNode = <TextReveal as="span" className="block" highlight={highlight}>{title}</TextReveal>;
+
+  const content = (
+    <div className={cn(stack && "max-w-3xl", cover && "max-w-3xl")}>
+      {eyebrow && (
+        <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: EASE.outExpo }} className="mb-6">
+          <Eyebrow>{eyebrow}</Eyebrow>
+        </motion.div>
+      )}
+      <h1 className="text-display-xl font-medium text-ink">{heading}</h1>
+      {subtitle && (
+        <Reveal delay={0.4} as="p" className="mt-6 max-w-xl text-lg leading-relaxed text-ink-2 md:text-xl">
+          {subtitle}
+        </Reveal>
+      )}
+      {(primaryCta || secondaryCta) && (
+        <Reveal delay={0.55} className="mt-8 flex flex-wrap items-center gap-3">
+          {primaryCta && <Magnetic><Button size="lg" href={primaryCta.href} arrow>{primaryCta.label}</Button></Magnetic>}
+          {secondaryCta && <Magnetic strength={0.12}><Button size="lg" variant="secondary" href={secondaryCta.href}>{secondaryCta.label}</Button></Magnetic>}
+        </Reveal>
+      )}
+      {proof && <Reveal delay={0.7} className="mt-8 text-sm text-ink-2">{proof}</Reveal>}
+    </div>
+  );
+
+  if (cover) {
+    return (
+      <section id={id} className={cn("relative isolate flex min-h-[100svh] items-end overflow-hidden bg-surface pb-14 pt-[46vh] lg:pt-[57vh]", className)}>
+        <motion.div
+          aria-hidden
+          initial={{ opacity: 0, scale: 1.04 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 1.4, ease: EASE.outExpo }}
+          className="absolute inset-x-0 top-0 -z-20 h-full lg:-top-[18vh] lg:h-[118vh] [&>img]:h-full [&>img]:w-full [&>img]:object-cover"
+        >
+          {media}
+        </motion.div>
+        <Container className="relative">{content}</Container>
+        {overlay && <div className="pointer-events-none absolute inset-0 [&_*]:pointer-events-auto"><Container className="relative h-full">{overlay}</Container></div>}
+      </section>
     );
   }
 
   return (
-    <section id={id} className={cn("relative flex min-h-screen flex-col justify-center overflow-hidden bg-ink pt-32 pb-20 text-paper", className)}>
-      <AmbientBackground />
-      <div className="absolute inset-0 bg-noise" />
-      <Container className={cn("relative", !center && "grid items-center gap-16 lg:grid-cols-2")}>
-        <div className={cn(center && "mx-auto max-w-4xl text-center")}>
-          {eyebrow && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: EASE.outExpo }} className="mb-7">
-              <Badge dot>{eyebrow}</Badge>
-            </motion.div>
-          )}
-          <h1 className="text-display-xl font-semibold">{heading}</h1>
-          {subtitle && (
-            <Reveal delay={0.5} as="p" className={cn("mt-8 text-lg leading-relaxed text-muted md:text-2xl", center && "mx-auto max-w-2xl")}>
-              {subtitle}
-            </Reveal>
-          )}
-          {(primaryCta || secondaryCta) && (
-            <Reveal delay={0.7} className={cn("mt-10 flex flex-wrap items-center gap-4", center && "justify-center")}>
-              {primaryCta && <Magnetic><Button size="lg" href={primaryCta.href} arrow>{primaryCta.label}</Button></Magnetic>}
-              {secondaryCta && <Magnetic strength={0.2}><Button size="lg" variant="glass" href={secondaryCta.href}>{secondaryCta.label}</Button></Magnetic>}
-            </Reveal>
-          )}
-          {proof && <Reveal delay={0.9} className={cn("mt-10 text-sm text-muted", center && "flex justify-center")}>{proof}</Reveal>}
-        </div>
-
+    <section id={id} className={cn("relative overflow-hidden pb-12 pt-32 md:pb-16 md:pt-40", className)}>
+      <StudioBackground />
+      <Container className={cn("relative", !stack && "grid items-center gap-12 lg:grid-cols-[1.05fr_1fr] lg:gap-16")}>
+        {content}
         {visual && (
-          <Reveal preset="riseIn" delay={0.6} className={cn("relative", center ? "mx-auto mt-20 flex justify-center" : "flex justify-center lg:justify-end")}>
+          <Reveal preset="riseIn" delay={0.45} className={cn("relative", stack ? "mt-14 md:mt-20" : "flex justify-center lg:justify-end")}>
             {visual}
           </Reveal>
         )}
       </Container>
-
-      {scrollHint && (
-        <motion.div
-          aria-hidden
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.6, duration: 1 }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 text-muted"
-        >
-          <motion.div animate={{ y: [0, 8, 0] }} transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}>
-            <ChevronDown className="size-5" />
-          </motion.div>
-        </motion.div>
-      )}
     </section>
   );
 }

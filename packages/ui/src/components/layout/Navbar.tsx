@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { AnimatePresence, motion, useScroll, useMotionValueEvent } from "motion/react";
 import { Menu, X } from "lucide-react";
 import { cn } from "../../lib/cn";
+import { ICON } from "../../lib/icon";
 import { Logo } from "../brand/Logo";
 import { Button } from "../ui/Button";
 import { EASE } from "../../animations/easings";
@@ -11,17 +12,14 @@ export interface NavLink { label: string; href: string }
 
 export interface NavbarProps {
   links?: NavLink[];
-  /** Nodo a la izquierda (default: logo A Futuro + wordmark). */
   brand?: ReactNode;
   cta?: { label: string; href: string };
   className?: string;
-  /** Nombre del cliente para mostrar "Cliente · by A Futuro". */
+  /** Nombre del cliente: "Cliente · by A Futuro". */
   clientName?: string;
 }
 
-/**
- * Navbar pill flotante (estilo Pulso): se compacta y gana blur al scrollear, se esconde al bajar rápido.
- */
+/** Navbar pill flotante de vidrio en desktop (se compacta al scrollear y se esconde al bajar). En mobile no hay barra: solo el logo y la hamburguesa, siempre visibles. */
 export function Navbar({ links = [], brand, cta, className, clientName }: NavbarProps) {
   const { scrollY } = useScroll();
   const [scrolled, setScrolled] = useState(false);
@@ -31,7 +29,7 @@ export function Navbar({ links = [], brand, cta, className, clientName }: Navbar
   useMotionValueEvent(scrollY, "change", (y) => {
     const prev = scrollY.getPrevious() ?? 0;
     setScrolled(y > 24);
-    setHidden(y > prev && y > 200 && !open);
+    setHidden(y > prev && y > 240 && !open);
   });
   useEffect(() => { document.body.style.overflow = open ? "hidden" : ""; return () => { document.body.style.overflow = ""; }; }, [open]);
 
@@ -41,31 +39,26 @@ export function Navbar({ links = [], brand, cta, className, clientName }: Navbar
 
   return (
     <motion.header
-      initial={{ y: -80, opacity: 0 }}
-      animate={{ y: hidden ? -120 : 0, opacity: 1 }}
-      transition={{ duration: 0.6, ease: EASE.outExpo }}
-      className={cn("fixed inset-x-0 top-4 z-50 flex justify-center px-4 md:top-6", className)}
+      initial={{ y: -40, opacity: 0 }}
+      animate={{ y: hidden ? -100 : 0, opacity: 1 }}
+      transition={{ duration: 0.5, ease: EASE.outExpo }}
+      className={cn("fixed inset-x-0 top-3 z-50 flex justify-center px-4 max-md:[transform:none!important] md:top-5", className)}
     >
-      <nav
-        className={cn(
-          "flex w-full max-w-5xl items-center justify-between gap-6 rounded-full pl-5 pr-2 transition-all duration-500",
-          scrolled ? "glass-strong h-14 shadow-soft" : "h-16 border border-transparent bg-transparent",
-        )}
-      >
-        <a href="#" className="flex items-center gap-3" onClick={go("#top")}>
-          {brand ?? <Logo size={30} wordmark={!clientName} />}
+      <nav className={cn("flex w-full max-w-5xl items-center justify-between gap-6 rounded-full max-md:h-12 max-md:px-1 md:af-glass md:pl-5 md:pr-2 md:transition-all md:duration-300", scrolled ? "md:h-13 md:shadow-float" : "md:h-14")}>
+        <a href="#" className="af-focus flex items-center gap-3 rounded-full" onClick={go("#top")}>
+          {brand ?? <Logo size={26} />}
           {clientName && (
-            <span className="flex items-baseline gap-2 font-display font-semibold tracking-tight">
+            <span className="flex items-baseline gap-2 font-display font-medium tracking-[-0.02em]">
               {clientName}
-              <span className="hidden font-mono text-[10px] font-normal uppercase tracking-[0.2em] text-muted sm:inline">by A Futuro</span>
+              <span className="hidden text-label font-normal uppercase text-ink-3 sm:inline">by A Futuro</span>
             </span>
           )}
         </a>
 
-        <ul className="hidden items-center gap-1 md:flex">
+        <ul className="hidden items-center gap-0.5 md:flex">
           {links.map((l) => (
             <li key={l.href}>
-              <a href={l.href} onClick={go(l.href)} className="relative rounded-full px-4 py-2 text-sm text-muted transition-colors duration-300 hover:text-paper">
+              <a href={l.href} onClick={go(l.href)} className="af-focus relative rounded-full px-3.5 py-2 text-sm text-ink-2 transition-colors duration-200 hover:bg-surface-3 hover:text-ink">
                 {l.label}
               </a>
             </li>
@@ -74,8 +67,8 @@ export function Navbar({ links = [], brand, cta, className, clientName }: Navbar
 
         <div className="flex items-center gap-2">
           {cta && <Button size="sm" href={cta.href} arrow className="hidden sm:inline-flex">{cta.label}</Button>}
-          <button aria-label="Menú" onClick={() => setOpen((o) => !o)} className="flex size-10 items-center justify-center rounded-full text-paper transition-colors hover:bg-white/10 md:hidden">
-            {open ? <X className="size-5" /> : <Menu className="size-5" />}
+          <button aria-label="Menú" aria-expanded={open} onClick={() => setOpen((o) => !o)} className="af-focus flex size-10 items-center justify-center rounded-full text-ink transition-colors hover:bg-surface-3 md:hidden">
+            {open ? <X {...ICON} /> : <Menu {...ICON} />}
           </button>
         </div>
       </nav>
@@ -83,20 +76,20 @@ export function Navbar({ links = [], brand, cta, className, clientName }: Navbar
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, y: -12, filter: "blur(10px)" }}
-            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-            exit={{ opacity: 0, y: -12, filter: "blur(10px)" }}
-            transition={{ duration: 0.4, ease: EASE.outExpo }}
-            className="glass-strong absolute inset-x-4 top-20 rounded-3xl p-4 md:hidden"
+            initial={{ opacity: 0, y: -8, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -8, scale: 0.98 }}
+            transition={{ duration: 0.3, ease: EASE.outExpo }}
+            className="af-surface-float absolute inset-x-4 top-18 rounded-xl p-3 md:hidden"
           >
             <ul className="flex flex-col">
               {links.map((l, i) => (
-                <motion.li key={l.href} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.05 * i }}>
-                  <a href={l.href} onClick={go(l.href)} className="block rounded-2xl px-4 py-3 text-lg font-medium hover:bg-white/8">{l.label}</a>
+                <motion.li key={l.href} initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.04 * i }}>
+                  <a href={l.href} onClick={go(l.href)} className="block rounded-md px-4 py-3 text-base font-medium text-ink hover:bg-surface-3">{l.label}</a>
                 </motion.li>
               ))}
             </ul>
-            {cta && <Button href={cta.href} arrow className="mt-3 w-full">{cta.label}</Button>}
+            {cta && <Button href={cta.href} arrow className="mt-2 w-full">{cta.label}</Button>}
           </motion.div>
         )}
       </AnimatePresence>

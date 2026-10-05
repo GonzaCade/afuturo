@@ -1,5 +1,6 @@
 // ---- utils
 export { cn } from "./lib/cn";
+export { ICON, ICON_SM, ICON_LG, ICON_CLASS } from "./lib/icon";
 
 // ---- animaciones
 export * from "./animations";
@@ -7,14 +8,22 @@ export * from "./animations";
 // ---- marca
 export * from "./components/brand/Logo";
 
-// ---- ui
-export * from "./components/ui/Button";
-export * from "./components/ui/Badge";
+// ---- primitivas
+export * from "./components/ui/Surface";
 export * from "./components/ui/Card";
+export * from "./components/ui/Button";
+export * from "./components/ui/Status";
 export * from "./components/ui/Typography";
 export * from "./components/ui/Ambient";
+export * from "./components/ui/LensGlare";
 
-// ---- layout
+// ---- controles · datos · cards · shell
+export * from "./components/controls";
+export * from "./components/data";
+export * from "./components/cards";
+export * from "./components/shell";
+
+// ---- layout de sitio
 export * from "./components/layout/Section";
 export * from "./components/layout/Navbar";
 export * from "./components/layout/Footer";

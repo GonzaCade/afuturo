@@ -1,86 +1,64 @@
 # Animaciones — librerías y recetario
 
+Principio: **la UI se siente física, no vistosa.** Hover sube 2–3 px, press comprime a .98, todo en 160–320 ms. Las entradas de sección son lentas y silenciosas (0.6–0.9 s).
+
 ## Librerías (instaladas en `@afuturo/ui`)
 
-| Librería | Versión | Para qué | Cuándo NO |
-|---|---|---|---|
-| **Motion** (`motion/react`) | 12.x | Variants, `whileInView`, springs, `useScroll`/`useTransform`, `AnimatePresence`, layout animations. **Default para todo lo de UI.** | Timelines largos con muchos elementos sincronizados |
-| **GSAP + ScrollTrigger** (`gsap`) | 3.13 (gratis, todos los plugins) | Pin de secciones complejas, scrub sincronizado, secuencias de frames tipo Apple, capas tipo Rockstar, SplitText | Hovers y micro‑interacciones (usar Motion) |
-| **Lenis** (`lenis`) | 1.3 | Scroll con inercia | Apps con scroll interno complejo |
-| **CSS keyframes** (en `theme.css`) | — | Loops infinitos baratos: gradient drift, float, marquee, shimmer, pulse, scan | Cualquier cosa disparada por scroll |
+| Librería | Para qué | Cuándo NO |
+|---|---|---|
+| **Motion** (`motion/react`) | Variants, `whileInView`, `layoutId` (indicadores deslizantes), springs. **Default.** | Timelines largos sincronizados |
+| **GSAP + ScrollTrigger** | Pin de secciones, scrub, secuencias tipo Apple | Hovers y micro-interacciones |
+| **Lenis** | Solo con `SmoothScroll smooth` para una escena cinemática puntual | **Default es scroll nativo** (fluidez tipo Pinterest, sin lag) |
+| **CSS keyframes** (`theme.css`) | Loops baratos: `float`, `pulse-dot`, `marquee`, `shimmer`, `studio` | Nada disparado por scroll |
 
-Candidatas (no instaladas; agregar solo si un cliente lo pide): `@react-three/fiber` + `drei` (3D tipo Apple), `lottie-react` (ilustraciones animadas), `@number-flow/react` (números que ruedan), `split-type` (split de texto para GSAP).
+## Presets (`@afuturo/ui/animations`)
 
-## Presets disponibles (`@afuturo/ui/animations`)
+**Variants:** `fadeIn` `fadeUp` `fadeDown` `fadeLeft` `fadeRight` `blurIn` `scaleIn` `riseIn` `clipUp` `wordUp` `stagger(gap, delay)` `cardHover` `pageTransition`
 
-**Variants (Motion):** `fadeIn` `fadeUp` `fadeDown` `fadeLeft` `fadeRight` `blurIn` `scaleIn` `riseIn` `clipUp` `wordUp` `stagger(gap, delay)` `cardHover` `pageTransition`
-
-**Easings:** `EASE.outExpo` · `EASE.outQuart` · `EASE.inOutSmooth` · `EASE.spring` · `EASE.apple` — `SPRING.soft/snappy/bouncy/slow` — `DURATION.fast/base/slow/cinematic`
+**Easings:** `EASE.outExpo` · `outQuart` · `inOutSmooth` · `spring` · `apple` — `SPRING.soft/snappy/gentle/slow` — `DURATION.fast(.16)/base(.24)/slow(.32)/enter(.6)/cinematic(.9)` — `PRESS` (hover/tap estándar para spread en `motion.*`).
 
 **Componentes:**
 | Componente | Efecto |
 |---|---|
-| `<Reveal preset delay once amount as>` | Entra al hacer scroll con cualquier preset |
+| `<Reveal preset delay once amount as>` | Entra al hacer scroll |
 | `<Stagger gap delay>` | Escalona hijos `motion.*` con `variants={fadeUp}` |
-| `<TextReveal by="word|char|line" effect="up|blur|flip" gradient>` | Título palabra por palabra |
-| `<Parallax speed axis scale opacity>` | Capa que se mueve a otra velocidad |
-| `<PinnedSequence steps stepHeight side render>` | Sección pinned estilo Apple |
-| `<Magnetic strength>` | Botón que sigue al cursor |
-| `<Tilt max glare>` | Tarjeta 3D |
-| `<Spotlight color size>` | Halo que sigue al cursor sobre una card |
-| `<Marquee duration reverse pauseOnHover fade>` | Cinta infinita |
-| `<CountUp to decimals prefix suffix>` | Número que cuenta |
-| `<SmoothScroll lerp>` + `scrollToId()` | Lenis |
-| `useGsap((gsap, root) => …)` | Escena GSAP con cleanup |
-| `useSectionProgress()` | Progreso 0–1 de una sección para animar a mano |
+| `<TextReveal by effect highlight accent>` | Título palabra por palabra; `highlight` pinta un rango con acento respetando puntuación |
+| `<Parallax speed>` | Capa a otra velocidad (usar ≤ 0.12 en este sistema) |
+| `<PinnedSequence steps>` | Sección pinned estilo Apple |
+| `<Magnetic strength>` | Botón que sigue apenas al cursor (0.2 default) |
+| `<Tilt max>` | Objeto que se inclina ≤ 4° |
+| `<Spotlight>` | Luz blanca de estudio que sigue al cursor |
+| `<Marquee>` · `<CountUp>` · `<SmoothScroll smooth?>` · `useGsap()` · `useSectionProgress()` | `SmoothScroll` = nativo por defecto |
 
-**Utilidades CSS:** `af-gradient` `af-gradient-slow` `af-gradient-diag` `text-gradient` `text-gradient-h` `border-gradient` `glass` `glass-strong` `glass-light` `bg-grid` `bg-dots` `bg-noise` `bg-vignette` `af-scanline` `shimmer` `animate-float` `animate-float-slow` `animate-pulse-glow` `animate-spin-slow` `animate-marquee` `animate-shimmer`
+**Utilidades CSS:** `af-studio` `af-studio-inner` `af-surface` `af-surface-2` `af-surface-float` `af-glass` `af-inset` `af-focus` `af-range` `bg-grid` `bg-dots` `bg-noise` `shimmer` `animate-float` `animate-float-slow` `animate-pulse-dot` `animate-marquee` `animate-shimmer` `animate-studio`
 
 ## Recetas
 
-**Hero cinemático (Rockstar):**
+**Indicador deslizante (segmented, sidebar, dock):**
 ```tsx
-<section className="relative h-[140vh] bg-ink">
-  <div className="sticky top-0 h-screen overflow-hidden">
-    <Parallax speed={0.4} scale={[1, 1.2]} className="absolute inset-0"><img src={fondo} /></Parallax>
-    <Parallax speed={0.15} className="absolute inset-0"><img src={capaMedia} /></Parallax>
-    <Parallax speed={-0.1} className="absolute inset-x-0 bottom-0"><img src={primerPlano} /></Parallax>
-    <Reveal preset="blurIn" delay={0.6} className="absolute inset-0 grid place-items-center">
-      <Logo size={160} />
-    </Reveal>
-  </div>
-</section>
+{active && <motion.span layoutId={`seg-${id}`} className="absolute inset-0 rounded-sm bg-surface shadow-float-xs" transition={SPRING.snappy} />}
 ```
 
-**Producto paso a paso (Apple):**
+**Superficie interactiva:**
 ```tsx
-<PinnedSequence steps={[
-  { title: "Pedidos en un toque", body: "…", visual: <IPhone17ProMax width={320}><Pantalla1/></IPhone17ProMax> },
-  { title: "Cobros integrados",  body: "…", visual: <IPhone17ProMax width={320}><Pantalla2/></IPhone17ProMax> },
-]} />
-```
-
-**Escena GSAP con pin + scrub:**
-```tsx
-const ref = useGsap((gsap, root) => {
-  gsap.timeline({ scrollTrigger: { trigger: root, start: "top top", end: "+=250%", pin: true, scrub: 1 } })
-    .from(".capa", { yPercent: 40, opacity: 0, stagger: 0.2 }, 0)
-    .to(".titulo", { filter: "blur(0px)", opacity: 1 }, 0.5);
-});
+<motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }} transition={{ duration: DURATION.base, ease: EASE.outQuart }} className="af-surface rounded-xl" />
 ```
 
 **Lista con stagger:**
 ```tsx
-<Stagger className="grid md:grid-cols-3 gap-5">
+<Stagger className="grid md:grid-cols-3 gap-4">
   {items.map(i => <motion.div key={i.id} variants={fadeUp}><Card>…</Card></motion.div>)}
 </Stagger>
 ```
 
+**Gráfico que se dibuja:** `MiniChart` y `StatusGraph` ya animan `pathLength` / altura al entrar en viewport.
+
 ## Reglas
 
-1. Nada entra "seco": mínimo `fadeUp`. Héroes y títulos: `blurIn` / `TextReveal effect="blur"`.
-2. Una sola animación protagonista por viewport; el resto acompaña (más lento, más sutil).
-3. Loops infinitos solo en CSS (gradiente, float, marquee). Nunca loops JS de 60 fps sin motivo.
-4. Duraciones ≥ 0.6 s para entradas; ≤ 0.3 s para hovers.
-5. Respetar `prefers-reduced-motion` (ya está en base.css y en SmoothScroll/useGsap).
-6. `whileInView` siempre en un elemento visible (no clipeado por overflow/clip-path).
+1. Nada entra "seco": mínimo `fadeUp`. Títulos: `TextReveal`.
+2. Una sola animación protagonista por viewport.
+3. Loops infinitos solo en CSS, y sutiles (float de 6 px, no de 14).
+4. Interacción 160–320 ms; entradas ≥ 0.6 s.
+5. Respetar `prefers-reduced-motion` (base.css, SmoothScroll, useGsap).
+6. `whileInView` siempre en un elemento visible (no clipeado).
+7. Sin glow, sin neón, sin gradientes animados.

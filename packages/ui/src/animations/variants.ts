@@ -12,7 +12,7 @@ import { EASE, DURATION } from "./easings";
 export const VIEWPORT = { once: true, amount: 0.25, margin: "0px 0px -10% 0px" } as const;
 
 const base = (extra: Record<string, unknown>) => ({
-  duration: DURATION.slow,
+  duration: DURATION.enter,
   ease: EASE.outExpo,
   ...extra,
 });
@@ -23,47 +23,45 @@ export const fadeIn: Variants = {
 };
 
 export const fadeUp: Variants = {
-  hidden: { opacity: 0, y: 32 },
+  hidden: { opacity: 0, y: 18 },
   show: { opacity: 1, y: 0, transition: base({}) },
 };
 
 export const fadeDown: Variants = {
-  hidden: { opacity: 0, y: -24 },
+  hidden: { opacity: 0, y: -14 },
   show: { opacity: 1, y: 0, transition: base({}) },
 };
 
 export const fadeLeft: Variants = {
-  hidden: { opacity: 0, x: 40 },
+  hidden: { opacity: 0, x: 24 },
   show: { opacity: 1, x: 0, transition: base({}) },
 };
 
 export const fadeRight: Variants = {
-  hidden: { opacity: 0, x: -40 },
+  hidden: { opacity: 0, x: -24 },
   show: { opacity: 1, x: 0, transition: base({}) },
 };
 
-/** Entrada con desenfoque — la firma "Black Mirror" del sistema. */
+/** Entrada con desenfoque leve: la firma del sistema (silenciosa, no vistosa). */
 export const blurIn: Variants = {
-  hidden: { opacity: 0, filter: "blur(16px)", y: 16 },
+  hidden: { opacity: 0, filter: "blur(8px)", y: 10 },
   show: { opacity: 1, filter: "blur(0px)", y: 0, transition: base({ duration: DURATION.cinematic }) },
 };
 
 export const scaleIn: Variants = {
-  hidden: { opacity: 0, scale: 0.92 },
+  hidden: { opacity: 0, scale: 0.96 },
   show: { opacity: 1, scale: 1, transition: base({}) },
 };
 
-/** Para elementos que "emergen" del suelo (mockups, tarjetas grandes). */
+/** Objetos que "se apoyan" en la superficie (mockups, superficies hero). */
 export const riseIn: Variants = {
-  hidden: { opacity: 0, y: 80, scale: 0.96 },
+  hidden: { opacity: 0, y: 40, scale: 0.98 },
   show: { opacity: 1, y: 0, scale: 1, transition: base({ duration: DURATION.cinematic }) },
 };
 
 /**
- * Revelado con máscara vertical (tipo cortina): el hijo sube desde abajo dentro de un wrapper
- * `overflow-hidden`. <Reveal preset="clipUp"> ya arma el wrapper. Si lo usás a mano, poné
- * `whileInView` en el wrapper (no en el hijo desplazado): IntersectionObserver no ve elementos
- * clipeados por overflow/clip-path.
+ * Revelado con máscara vertical: el hijo sube dentro de un wrapper `overflow-hidden`.
+ * <Reveal preset="clipUp"> ya arma el wrapper (el observado es el wrapper, no el hijo clipeado).
  */
 export const clipUp: Variants = {
   hidden: { y: "105%", opacity: 0.001 },
@@ -71,26 +69,26 @@ export const clipUp: Variants = {
 };
 
 /** Contenedor que escalona a sus hijos. */
-export const stagger = (staggerChildren = 0.08, delayChildren = 0.05): Variants => ({
+export const stagger = (staggerChildren = 0.06, delayChildren = 0.04): Variants => ({
   hidden: {},
   show: { transition: { staggerChildren, delayChildren } },
 });
 
 /** Para palabras/caracteres dentro de TextReveal. */
 export const wordUp: Variants = {
-  hidden: { opacity: 0, y: "0.6em", rotateX: -30 },
-  show: { opacity: 1, y: 0, rotateX: 0, transition: base({ duration: 0.7 }) },
+  hidden: { opacity: 0, y: "0.5em" },
+  show: { opacity: 1, y: 0, transition: base({ duration: 0.6 }) },
 };
 
-/** Hover estándar para tarjetas. */
+/** Hover físico estándar para tarjetas: 2–3 px arriba, sombra apenas más fuerte. */
 export const cardHover = {
-  rest: { y: 0, scale: 1 },
-  hover: { y: -6, scale: 1.01, transition: { duration: 0.35, ease: EASE.outQuart } },
+  rest: { y: 0 },
+  hover: { y: -3, transition: { duration: DURATION.base, ease: EASE.outQuart } },
 } satisfies Variants;
 
-/** Transición de página / sección completa. */
+/** Transición de página / vista. */
 export const pageTransition: Variants = {
-  initial: { opacity: 0, y: 12, filter: "blur(8px)" },
+  initial: { opacity: 0, y: 8, filter: "blur(4px)" },
   animate: { opacity: 1, y: 0, filter: "blur(0px)", transition: base({}) },
-  exit: { opacity: 0, y: -12, filter: "blur(8px)", transition: { duration: DURATION.fast } },
+  exit: { opacity: 0, y: -8, filter: "blur(4px)", transition: { duration: DURATION.slow } },
 };

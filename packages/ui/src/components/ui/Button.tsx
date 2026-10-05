@@ -2,77 +2,115 @@ import { forwardRef, type ButtonHTMLAttributes, type AnchorHTMLAttributes, type 
 import { motion } from "motion/react";
 import { ArrowRight } from "lucide-react";
 import { cn } from "../../lib/cn";
-import { EASE } from "../../animations/easings";
+import { ICON_CLASS } from "../../lib/icon";
+import { EASE, DURATION } from "../../animations/easings";
 
-export type ButtonVariant = "primary" | "secondary" | "ghost" | "outline" | "glass" | "ember";
+export type ButtonVariant = "primary" | "secondary" | "ghost" | "ink";
 export type ButtonSize = "sm" | "md" | "lg" | "xl";
 
 const VARIANTS: Record<ButtonVariant, string> = {
-  primary: "af-gradient text-white shadow-glow-sm hover:shadow-glow",
-  secondary: "bg-paper text-ink hover:bg-white",
-  ember: "bg-ember-500 text-white hover:bg-ember-400 shadow-glow-ember",
-  ghost: "bg-transparent text-paper hover:bg-white/8",
-  outline: "border border-line-strong text-paper hover:border-primary-400/60 hover:bg-white/5",
-  glass: "glass text-paper hover:bg-white/10",
+  primary: "bg-accent text-white shadow-accent hover:bg-accent-600",
+  secondary: "af-surface text-ink hover:border-line-strong hover:shadow-float",
+  ghost: "bg-transparent text-ink-2 hover:bg-surface-3 hover:text-ink",
+  ink: "bg-ink text-white shadow-float-sm hover:bg-black",
 };
 const SIZES: Record<ButtonSize, string> = {
-  sm: "h-9 px-4 text-sm gap-1.5",
-  md: "h-11 px-6 text-sm gap-2",
-  lg: "h-13 px-8 text-base gap-2.5",
-  xl: "h-16 px-10 text-lg gap-3",
+  sm: "h-9 px-4 text-[13px] gap-1.5",
+  md: "h-10 px-5 text-sm gap-2",
+  lg: "h-12 px-6 text-[15px] gap-2.5",
+  xl: "h-14 px-8 text-base gap-3",
 };
 
-export interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "onDrag" | "onDragStart" | "onDragEnd" | "onAnimationStart"> {
+type NativeButton = Omit<ButtonHTMLAttributes<HTMLButtonElement>, "onDrag" | "onDragStart" | "onDragEnd" | "onAnimationStart">;
+
+export interface ButtonProps extends NativeButton {
   variant?: ButtonVariant;
   size?: ButtonSize;
-  /** Flecha animada a la derecha. */
+  /** Flecha a la derecha. */
   arrow?: boolean;
   icon?: ReactNode;
   href?: string;
   target?: AnchorHTMLAttributes<HTMLAnchorElement>["target"];
-  /** Efecto shimmer al hover (solo primary). */
-  shine?: boolean;
 }
 
-/**
- * Botón de marca. Siempre pill (rounded-full), con hover con escala suave y flecha opcional.
- */
+const MOTION = { whileHover: { y: -2 }, whileTap: { scale: 0.98, y: 0 }, transition: { duration: DURATION.base, ease: EASE.outQuart } };
+
+/** Botón pill. Hover: sube 2 px; press: escala .98. Acento solo en `primary`. */
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
-  { variant = "primary", size = "md", arrow, icon, href, target, shine = true, className, children, ...rest },
+  { variant = "primary", size = "md", arrow, icon, href, target, className, children, ...rest },
   ref,
 ) {
   const classes = cn(
-    "group/btn relative inline-flex items-center justify-center overflow-hidden rounded-full font-medium tracking-tight select-none",
-    "transition-[box-shadow,background-color,border-color,color] duration-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-ink",
-    "disabled:pointer-events-none disabled:opacity-50",
+    "group/btn af-focus relative inline-flex select-none items-center justify-center whitespace-nowrap rounded-full font-medium tracking-[-0.01em]",
+    "transition-[background-color,border-color,box-shadow,color] duration-200",
+    "disabled:pointer-events-none disabled:opacity-40",
+    ICON_CLASS,
     VARIANTS[variant],
     SIZES[size],
     className,
   );
   const inner = (
     <>
-      {shine && variant === "primary" && (
-        <span aria-hidden className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-700 ease-out group-hover/btn:translate-x-full" />
-      )}
-      {icon && <span className="relative shrink-0">{icon}</span>}
-      <span className="relative">{children}</span>
-      {arrow && (
-        <ArrowRight className="relative size-[1.1em] shrink-0 transition-transform duration-500 ease-out group-hover/btn:translate-x-1" strokeWidth={2.2} />
-      )}
+      {icon && <span className="shrink-0">{icon}</span>}
+      <span>{children}</span>
+      {arrow && <ArrowRight className="size-[1.05em] shrink-0 transition-transform duration-200 ease-out group-hover/btn:translate-x-0.5" strokeWidth={1.8} />}
     </>
   );
-  const motionProps = { whileHover: { scale: 1.03 }, whileTap: { scale: 0.97 }, transition: { duration: 0.3, ease: EASE.outQuart } };
-
   if (href) {
     return (
-      <motion.a href={href} target={target} rel={target === "_blank" ? "noreferrer" : undefined} className={classes} {...motionProps}>
+      <motion.a href={href} target={target} rel={target === "_blank" ? "noreferrer" : undefined} className={classes} {...MOTION}>
         {inner}
       </motion.a>
     );
   }
   return (
-    <motion.button ref={ref} className={classes} {...motionProps} {...rest}>
+    <motion.button ref={ref} className={classes} {...MOTION} {...rest}>
       {inner}
+    </motion.button>
+  );
+});
+
+export const PrimaryButton = forwardRef<HTMLButtonElement, Omit<ButtonProps, "variant">>(function PrimaryButton(p, ref) {
+  return <Button ref={ref} variant="primary" {...p} />;
+});
+export const SecondaryButton = forwardRef<HTMLButtonElement, Omit<ButtonProps, "variant">>(function SecondaryButton(p, ref) {
+  return <Button ref={ref} variant="secondary" {...p} />;
+});
+
+export interface IconButtonProps extends NativeButton {
+  /** Texto accesible (obligatorio: el botón no tiene label visible). */
+  label: string;
+  variant?: "secondary" | "ghost" | "primary" | "ink";
+  size?: "sm" | "md" | "lg";
+  /** Estado activo (acento). */
+  active?: boolean;
+  children: ReactNode;
+}
+
+const ICON_SIZES = { sm: "size-9", md: "size-10", lg: "size-12" };
+
+/** Botón cuadrado de ícono, radio 14 px. Target mínimo 40 px. */
+export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(function IconButton(
+  { label, variant = "secondary", size = "md", active, className, children, ...rest },
+  ref,
+) {
+  return (
+    <motion.button
+      ref={ref}
+      aria-label={label}
+      title={label}
+      aria-pressed={active}
+      className={cn(
+        "af-focus inline-flex shrink-0 items-center justify-center rounded-md transition-[background-color,border-color,box-shadow,color] duration-200 disabled:pointer-events-none disabled:opacity-40",
+        ICON_CLASS,
+        ICON_SIZES[size],
+        active ? "bg-accent-50 text-accent border border-accent-100" : VARIANTS[variant],
+        className,
+      )}
+      {...MOTION}
+      {...rest}
+    >
+      {children}
     </motion.button>
   );
 });

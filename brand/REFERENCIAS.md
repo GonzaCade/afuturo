@@ -1,58 +1,44 @@
 # Referencias de diseño → cómo se traducen al sistema
 
-Tres referencias definen el sistema. De cada una tomamos patrones concretos, no estética literal.
+Tomamos patrones concretos, no estética literal.
 
-## 1. pulso.health — estructura de onepage de producto
+## 1. HMI automotriz minimalista / configuradores de hardware premium
 
-**Qué hace bien:** navbar pill flotante con blur; hero centrado con título grande + prueba social (rating, "+6M"); mockup de teléfono rodeado de tarjetas flotantes; grilla de 6 capacidades; carrusel infinito de testimonios; secciones alternadas texto/imagen para cada feature; FAQ acordeón; CTA final con QR; footer completo.
+**Qué hacen bien:** una información dominante por pantalla (el vehículo, el dispositivo), controles grandes y táctiles, un solo color de acento para "activo", mucho aire, superficies que parecen físicas.
 
-**En el sistema:**
-| Patrón Pulso | Componente |
+| Patrón | Componente |
 |---|---|
-| Nav pill flotante | `<Navbar>` (se compacta y gana blur al scrollear) |
-| Hero + proof + mockup | `<Hero layout="center" proof visual={<IPhone17ProMax/>}>` |
-| Tarjetas flotantes alrededor del mockup | `Card variant="glass"` con `animate-float` y `Parallax` |
-| Grilla de capacidades | `<FeatureGrid columns={3}>` o `bento` |
-| Testimonios en cinta | `<Testimonials layout="marquee">` |
-| Feature deep‑dives alternados | `<Showcase items=[…]>` |
-| FAQ | `<FAQ>` |
-| Descarga / CTA final | `<CTA>` (acepta `children` para QR/inputs) |
-| Fondo claro lavanda | `Section tone="light"` (usar con moderación) |
+| Objeto dominante centrado con luz cenital | `<ProductStage>` · `<HeroSurface media>` |
+| Panel lateral de controles | `<ControlCard>` con `Slider` / `Toggle` / `SegmentedControl` |
+| Estado de dispositivos | `<DeviceCard>` (selección = borde + punto de acento) |
+| Métrica grande como ancla | `<Metric size="lg">` · `<BigNumber>` |
+| Navegación con indicador físico | `<Sidebar>` · `<FloatingDock>` (layoutId) |
 
-Orden recomendado de una onepage de cliente: **Hero → LogoCloud → FeatureGrid → Showcase → Stats → Steps → Testimonials → Pricing → FAQ → CTA → Footer**.
+## 2. Fotografía de estudio sobre blanco (Apple, product renders)
 
-## 2. apple.com/airpods-pro — tipografía y scroll cinematográfico
+**Qué hace bien:** fondo blanco que no es plano (luz suave, sombra de piso), producto sin recortes duros, tipografía enorme con tracking negativo, una idea por pantalla.
 
-**Qué hace bien:** títulos enormes con tracking negativo y una sola idea por pantalla; producto full‑bleed; secciones "pinned" donde el visual queda fijo y el texto cambia con el scroll; galerías por pestañas; comparativas con íconos; mucho aire.
-
-**En el sistema:**
-| Patrón Apple | Componente |
+| Patrón | Componente |
 |---|---|
-| Título gigante, una idea | `text-display-xl` + `TextReveal effect="blur"` |
-| Sección pinned paso a paso | `<PinnedSequence steps=[…]>` (cambia la pantalla del iPhone por paso) |
-| Escena pinned compleja / secuencia de frames | `useGsap()` con `ScrollTrigger` `pin + scrub` |
-| Scroll con inercia | `<SmoothScroll>` (Lenis) |
-| Tarjetas de producto 3D | `<Tilt>` |
-| Números/specs grandes | `<Stats>` con `CountUp` |
-| Aire | `Section spacing="lg"` |
+| Fondo de estudio | `af-studio` (body) · `af-studio-inner` (dentro de superficies) |
+| Producto con sombra de piso | `<ProductStage floor>` · `<IPhone17ProMax shadow>` |
+| Imagen de producto en card | `<ProductCard>` (imágenes PNG/WebP sobre blanco) |
+| Título gigante, una idea | `text-display-xl` + `<TextReveal highlight>` |
+| Sección pinned paso a paso | `<PinnedSequence>` |
 
-## 3. rockstargames.com/VI — capas, profundidad y drama
+## 3. Tipografía suiza / editorial
 
-**Qué hace bien:** fondo oscuro con degradé profundo; hero de capas ("shards") que se mueven a distinta velocidad al scrollear; logo que emerge; transiciones lentas y grandes; imágenes 3840 px; "scroll for more".
+**Qué hace bien:** jerarquía por tamaño y peso (no por color), labels en mayúsculas chicas, números tabulares, grilla estricta.
 
-**En el sistema:**
-| Patrón Rockstar | Componente |
+| Patrón | Componente |
 |---|---|
-| Capas a distinta velocidad | varios `<Parallax speed={0.35 / 0.15 / -0.15}>` apilados |
-| Capas que crecen al pasar | `<Parallax scale={[1, 1.15]}>` |
-| Fondo oscuro con luz | `<AmbientBackground>` + `<Orb>` + `bg-noise` |
-| Logo que emerge | `Reveal preset="riseIn"` / `blurIn` con `delay` |
-| Wordmark gigante de cierre | `<Footer bigText>` (clipUp) |
-| "Scroll for more" | `Hero scrollHint` |
-| Escena de héroe con timeline | `useGsap()` timeline con `scrub: 1` |
+| Labels en mayúsculas | `<Label>` · `<Eyebrow>` |
+| Jerarquía display | `text-display-xl/lg/md/sm`, pesos 400–600 |
+| Números alineados | `tabular-nums` (ya en `Metric`, `BigNumber`, `Stats`) |
 
 ## Lo que NO copiamos
 
-- Colores de las referencias (Pulso lavanda, Rockstar neón rosa). Solo nuestro gradiente + Ember.
-- Fondo blanco como default (Apple/Pulso). El nuestro es negro; el claro es excepción.
-- Densidad de contenido de Rockstar. Menos, más grande, más aire.
+- Fondos oscuros como default. El sistema es claro; el bloque `ink` es una excepción puntual (CTA final).
+- Neón, glow, gradientes de color. Solo sombras frías y un acento sólido.
+- Densidad de dashboards SaaS. Menos cards, más aire, una idea dominante.
+- Glassmorphism como decoración. `af-glass` solo en barras y pills que flotan sobre imágenes.

@@ -1,9 +1,9 @@
 {
-  "name": "@afuturo/showcase",
+  "name": "@afuturo/site",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
-  "description": "Showcase visual del design system A Futuro (kitchen sink + onepage de la agencia)",
+  "description": "Sitio de A Futuro: onepage de la agencia + demo tipo OS del design system",
   "scripts": {
     "dev": "vite --host --open",
     "build": "vite build",

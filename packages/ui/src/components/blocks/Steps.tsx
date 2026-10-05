@@ -4,6 +4,7 @@ import { Section } from "../layout/Section";
 import { SectionHeading, type SectionHeadingProps } from "../ui/Typography";
 import { Stagger } from "../../animations/Reveal";
 import { fadeUp } from "../../animations/variants";
+import { EASE } from "../../animations/easings";
 
 export interface Step { title: string; body: string; icon?: ReactNode }
 
@@ -13,7 +14,7 @@ export interface StepsProps {
   id?: string;
 }
 
-/** Proceso en pasos numerados con línea conectora que se dibuja. */
+/** Proceso numerado con línea conectora que se dibuja. */
 export function Steps({ steps, heading, id }: StepsProps) {
   return (
     <Section id={id}>
@@ -21,17 +22,17 @@ export function Steps({ steps, heading, id }: StepsProps) {
       <div className="relative">
         <motion.div
           aria-hidden
-          initial={{ scaleX: 0 }} whileInView={{ scaleX: 1 }} viewport={{ once: true }} transition={{ duration: 1.6, ease: [0.16, 1, 0.3, 1] }}
-          className="absolute left-0 right-0 top-6 hidden h-px origin-left bg-gradient-to-r from-primary-400 via-primary-600 to-transparent md:block"
+          initial={{ scaleX: 0 }} whileInView={{ scaleX: 1 }} viewport={{ once: true }} transition={{ duration: 1.4, ease: EASE.outExpo }}
+          className="absolute left-0 right-0 top-5 hidden h-px origin-left bg-line-strong md:block"
         />
-        <Stagger gap={0.15} className="grid gap-10 md:grid-cols-3">
+        <Stagger gap={0.12} className="grid gap-8 md:grid-cols-3">
           {steps.map((s, i) => (
             <motion.div key={i} variants={fadeUp} className="relative">
-              <div className="mb-6 inline-flex size-12 items-center justify-center rounded-full af-gradient font-mono text-sm font-medium text-white shadow-glow-sm">
+              <div className="mb-5 inline-flex size-10 items-center justify-center rounded-full bg-ink font-mono text-[12px] font-medium text-white shadow-float-sm">
                 {s.icon ?? String(i + 1).padStart(2, "0")}
               </div>
-              <h3 className="font-display text-xl font-semibold">{s.title}</h3>
-              <p className="mt-3 leading-relaxed text-muted">{s.body}</p>
+              <h3 className="text-lg font-medium tracking-[-0.02em] text-ink">{s.title}</h3>
+              <p className="mt-2 max-w-xs text-[15px] leading-relaxed text-ink-2">{s.body}</p>
             </motion.div>
           ))}
         </Stagger>

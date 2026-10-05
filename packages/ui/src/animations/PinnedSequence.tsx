@@ -73,7 +73,7 @@ function useStepVisibility(progress: MotionValue<number>, index: number, total: 
     const el = ref.current; if (!el) return;
     const o = piecewise(p, xs, ys);
     el.style.opacity = String(o);
-    el.style.filter = `blur(${(1 - o) * 10}px)`;
+    el.style.filter = `blur(${(1 - o) * 6}px)`;
     el.style.transform = scale ? `scale(${0.94 + o * 0.06})` : `translateY(calc(-50% + ${(1 - o) * translate * dir(p)}px))`;
     el.style.pointerEvents = o > 0.5 ? "auto" : "none";
   };
@@ -86,9 +86,9 @@ function Step({ index, total, progress, title, body }: { index: number; total: n
   useStepVisibility(progress, index, total, 0.35 / total, ref, 30);
   return (
     <div ref={ref} className="absolute inset-x-0 top-1/2 will-change-[opacity,transform,filter]" style={{ transform: "translateY(-50%)" }}>
-      <span className="mb-4 block font-mono text-xs uppercase tracking-[0.25em] text-primary-400">0{index + 1} / 0{total}</span>
-      <h3 className="text-display-md font-semibold">{title}</h3>
-      {body && <p className="mt-5 max-w-md text-lg text-muted">{body}</p>}
+      <span className="mb-4 block font-mono text-label uppercase tracking-[0.12em] text-accent">0{index + 1} / 0{total}</span>
+      <h3 className="text-display-md font-medium">{title}</h3>
+      {body && <p className="mt-5 max-w-md text-lg text-ink-2">{body}</p>}
     </div>
   );
 }

@@ -3,7 +3,7 @@ import { motion } from "motion/react";
 import { cn } from "../../lib/cn";
 import { Section } from "../layout/Section";
 import { Card } from "../ui/Card";
-import { Badge } from "../ui/Badge";
+import { Badge } from "../ui/Status";
 import { Button } from "../ui/Button";
 import { SectionHeading, type SectionHeadingProps } from "../ui/Typography";
 import { Stagger } from "../../animations/Reveal";
@@ -16,7 +16,6 @@ export interface Plan {
   description?: string;
   features: string[];
   cta: { label: string; href: string };
-  /** Plan destacado (borde gradiente + badge). */
   featured?: boolean;
   badge?: string;
 }
@@ -27,32 +26,32 @@ export interface PricingProps {
   id?: string;
 }
 
-/** Tabla de planes / paquetes. Ideal para "software empaquetado". */
+/** Planes / paquetes. El destacado es el único con acento. */
 export function Pricing({ plans, heading, id }: PricingProps) {
   return (
-    <Section id={id} ambient>
+    <Section id={id}>
       {heading && <SectionHeading {...heading} />}
-      <Stagger className={cn("grid items-stretch gap-5", plans.length === 2 ? "md:grid-cols-2 lg:mx-auto lg:max-w-4xl" : "md:grid-cols-3")}>
+      <Stagger className={cn("grid items-stretch gap-4", plans.length === 2 ? "md:grid-cols-2 lg:mx-auto lg:max-w-4xl" : "md:grid-cols-3")}>
         {plans.map((p) => (
-          <motion.div key={p.name} variants={fadeUp} className={cn(p.featured && "md:-my-4")}>
-            <Card variant={p.featured ? "gradient-border" : "glass"} padding="lg" className={cn("flex h-full flex-col", p.featured && "bg-surface-2 shadow-glow")}>
-              <div className="flex items-center justify-between">
-                <h3 className="font-display text-xl font-semibold">{p.name}</h3>
-                {p.badge && <Badge variant={p.featured ? "primary" : "outline"}>{p.badge}</Badge>}
+          <motion.div key={p.name} variants={fadeUp}>
+            <Card padding="lg" selected={p.featured} className={cn("flex h-full flex-col", p.featured && "shadow-float-lg")}>
+              <div className="flex items-center justify-between gap-3">
+                <h3 className="text-lg font-medium tracking-[-0.02em] text-ink">{p.name}</h3>
+                {p.badge && <Badge variant={p.featured ? "accent" : "neutral"}>{p.badge}</Badge>}
               </div>
-              {p.description && <p className="mt-2 text-sm text-muted">{p.description}</p>}
-              <div className="mt-8 flex items-baseline gap-1">
-                <span className={cn("font-display text-5xl font-semibold tracking-tight", p.featured && "text-gradient")}>{p.price}</span>
-                {p.period && <span className="text-sm text-muted">/{p.period}</span>}
+              {p.description && <p className="mt-2 text-sm text-ink-2">{p.description}</p>}
+              <div className="mt-7 flex items-baseline gap-1">
+                <span className={cn("font-display text-display-md font-medium tabular-nums", p.featured ? "text-accent" : "text-ink")}>{p.price}</span>
+                {p.period && <span className="text-sm text-ink-3">/{p.period}</span>}
               </div>
-              <ul className="mt-8 flex-1 space-y-3">
+              <ul className="mt-7 flex-1 space-y-2.5">
                 {p.features.map((f) => (
-                  <li key={f} className="flex items-start gap-3 text-sm text-paper/85">
-                    <Check className="mt-0.5 size-4 shrink-0 text-primary-400" strokeWidth={2.5} />{f}
+                  <li key={f} className="flex items-start gap-3 text-sm text-ink">
+                    <Check size={15} strokeWidth={2} className="mt-0.5 shrink-0 text-ink-3" />{f}
                   </li>
                 ))}
               </ul>
-              <Button href={p.cta.href} variant={p.featured ? "primary" : "outline"} className="mt-10 w-full" arrow>{p.cta.label}</Button>
+              <Button href={p.cta.href} variant={p.featured ? "primary" : "secondary"} className="mt-8 w-full" arrow>{p.cta.label}</Button>
             </Card>
           </motion.div>
         ))}

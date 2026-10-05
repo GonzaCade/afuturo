@@ -4,18 +4,18 @@ import { cn } from "../lib/cn";
 
 export interface MagneticProps {
   children: ReactNode;
-  /** Cuánto se acerca al cursor (0–1). */
+  /** Cuánto se acerca al cursor (0–1). Contenido: 0.2 por defecto. */
   strength?: number;
   className?: string;
 }
 
-/** Envuelve un botón/ícono para que "siga" al cursor. Micro-interacción de marca. */
-export function Magnetic({ children, strength = 0.35, className }: MagneticProps) {
+/** Envuelve un botón para que "siga" apenas al cursor. */
+export function Magnetic({ children, strength = 0.2, className }: MagneticProps) {
   const ref = useRef<HTMLDivElement>(null);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
-  const sx = useSpring(x, { stiffness: 200, damping: 18, mass: 0.4 });
-  const sy = useSpring(y, { stiffness: 200, damping: 18, mass: 0.4 });
+  const sx = useSpring(x, { stiffness: 220, damping: 20, mass: 0.4 });
+  const sy = useSpring(y, { stiffness: 220, damping: 20, mass: 0.4 });
 
   const onMove = (e: MouseEvent<HTMLDivElement>) => {
     const el = ref.current;

@@ -1,4 +1,3 @@
-import { useId } from "react";
 import { cn } from "../../lib/cn";
 
 /** Path oficial del isotipo (viewBox 648×648), tomado de imagenes/a-futuro-logo-negro.svg */
@@ -8,40 +7,18 @@ export const LOGO_PATH =
 export interface LogoProps {
   /** Tamaño del isotipo en px. */
   size?: number;
-  /** gradient = marca; mono = hereda `currentColor`. */
-  tone?: "gradient" | "mono";
-  /** Muestra el wordmark "A Futuro" al lado. */
-  wordmark?: boolean;
+  /** ink = negro de marca (default); accent = azul; mono = hereda `currentColor`. */
+  tone?: "ink" | "accent" | "mono";
   className?: string;
-  /** El gradiente respira suavemente. */
-  animated?: boolean;
 }
 
-/** Isotipo A Futuro en SVG (escalable, con gradiente de marca animado). */
-export function Logo({ size = 36, tone = "gradient", wordmark, className, animated = true }: LogoProps) {
-  const id = useId();
+const FILL = { ink: "#15171A", accent: "#176BFF", mono: "currentColor" };
+
+/** Isotipo A Futuro en SVG. Solo el símbolo: la marca nunca se escribe al lado del logo. */
+export function Logo({ size = 28, tone = "ink", className }: LogoProps) {
   return (
-    <span className={cn("inline-flex items-center gap-3", className)}>
-      <svg width={size} height={size} viewBox="0 0 648 648" aria-label="A Futuro" role="img" className="shrink-0">
-        {tone === "gradient" && (
-          <defs>
-            <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#39BAD0">
-                {animated && <animate attributeName="stop-color" values="#39BAD0;#2A9EC4;#39BAD0" dur="8s" repeatCount="indefinite" />}
-              </stop>
-              <stop offset="100%" stopColor="#0054A2">
-                {animated && <animate attributeName="stop-color" values="#0054A2;#0B6DB8;#0054A2" dur="8s" repeatCount="indefinite" />}
-              </stop>
-            </linearGradient>
-          </defs>
-        )}
-        <path d={LOGO_PATH} fill={tone === "gradient" ? `url(#${id})` : "currentColor"} fillRule="evenodd" />
-      </svg>
-      {wordmark && (
-        <span className="font-display text-[1.05em] font-semibold tracking-tight">
-          A <span className="text-gradient">Futuro</span>
-        </span>
-      )}
-    </span>
+    <svg width={size} height={size} viewBox="0 0 648 648" aria-label="A Futuro" role="img" className={cn("inline-block shrink-0", className)}>
+      <path d={LOGO_PATH} fill={FILL[tone]} fillRule="evenodd" />
+    </svg>
   );
 }
