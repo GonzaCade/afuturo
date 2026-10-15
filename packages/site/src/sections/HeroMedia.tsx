@@ -1,17 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { LensGlare } from "@afuturo/ui";
 import heroImg from "../assets/girl-hero-banner.webp";
-import lensMask from "../assets/lens-mask.png";
 import intro4k from "../assets/hero-intro-4k.webm";
+import intro1080 from "../assets/hero-intro-1080p.webm";
 import intro720 from "../assets/hero-intro-720p.webm";
 import idle4k from "../assets/hero-idle-4k.webm";
+import idle1080 from "../assets/hero-idle-1080p.webm";
 import idle720 from "../assets/hero-idle-720p.webm";
-
-/* Rectángulo del visor dentro del encuadre (fracciones), calculado contra imagenes/anteojos.png.
-   El lente no se mueve en ningún video, así que sirve para la foto y para el idle. */
-export const LENS = { x: 0.3438, y: 0.4115, w: 0.3094, h: 0.1904 };
-const PHOTO = { width: 5504, height: 3072 };
-const VIDEO = { width: 3840, height: 2160 };
 
 /* Los videos exportados traen una franja negra horneada de ~0.46 % de alto arriba y abajo (medida en los 4 archivos).
    Se compensa escalando 1.2 % (0.6 % por lado), que la recorta sin tocar los archivos. Si se re-exportan sin franja,
@@ -45,38 +39,42 @@ function useBlobUrl(src: string, enabled: boolean, onFail: () => void) {
 
 /**
  * Fondo del hero en tres fases:
- *  1. `intro`: video de entrada (su último frame = la foto). Sin reflejo.
- *  2. `idle`: video en bucle (el lente no se mueve) con el reflejo del cursor encima del visor.
- *  3. `photo`: foto fija + reflejo. Fallback si algo falla (autoplay bloqueado, error, reduced-motion).
+ *  1. `intro`: video de entrada (su último frame = la foto). 
+ *  2. `idle`: video en bucle.
+ *  3. `photo`: foto fija. Fallback si algo falla (autoplay bloqueado, error, reduced-motion).
  *
- * Transición intro → idle: corte directo, sin crossfade (se quitó a pedido). El idle (en 720p, liviano) se precarga
+ * Transición intro → idle: corte directo con un glitch corto (`.hero-glitch` en styles.css), sin crossfade (se quitó a pedido). El idle 720p (liviano) se precarga
  * completo mientras corre el intro y arranca desde 0 en el mismo instante en que el intro termina. Si todavía
  * no está listo, el intro espera congelado en su último frame.
  *
- * Calidad: el idle siempre arranca en 720p; en pantallas grandes el 4K se baja en segundo plano y, cuando
- * está completo, reemplaza al 720p sin corte, retomando el bucle en el mismo instante.
+ * Calidad del idle, en cadena: 720p → 1080p → 4K (4K solo en pantallas grandes). Cada nivel se baja entero a un blob
+ * recién cuando el anterior ya está en pantalla. Al estar listo, se posiciona en el frame en curso del nivel
+ * anterior, se reproduce y recién cuando presenta su primer frame se muestra: el bucle no se reinicia.
  */
 export function HeroMedia() {
   const introRef = useRef<HTMLVideoElement>(null);
   const idleLoRef = useRef<HTMLVideoElement>(null);
-  const idleHiRef = useRef<HTMLVideoElement>(null);
 
   const [phase, setPhase] = useState<Phase>(() => (typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "photo" : "intro"));
   const [introGone, setIntroGone] = useState(phase !== "intro");
   const [introPlaying, setIntroPlaying] = useState(false);
   const [loReady, setLoReady] = useState(false);
   const [started, setStarted] = useState(false);
-  const [hiLive, setHiLive] = useState(false);
-  const [loGone, setLoGone] = useState(false);
+  // mejor nivel ya en pantalla (0 = 720p) y primer nivel que sigue montado
+  const [level, setLevel] = useState(0);
+  const [kept, setKept] = useState(0);
 
-  // 4K solo en pantallas grandes o densas. Elegido en JS: `media` en <source> no es fiable.
+  // 4K solo en pantallas grandes o densas; el intro usa 1080p en pantallas medianas. Elegido en JS: `media` en <source> no es fiable.
   const [big] = useState(() => typeof window !== "undefined" && window.matchMedia("(min-width: 1920px), ((min-width: 1280px) and (min-resolution: 1.5dppx))").matches);
-  const introSrc = big ? intro4k : intro720;
+  const [mid] = useState(() => typeof window !== "undefined" && window.matchMedia("(min-width: 1024px)").matches);
+  const introSrc = big ? intro4k : mid ? intro1080 : intro720;
+  // mejoras del idle sobre el 720p, en orden
+  const upgrades = big ? [idle1080, idle4k] : [idle1080];
   const toPhoto = () => setPhase("photo");
 
-  // precarga: el idle 720p apenas el intro ya está reproduciendo; el 4K recién cuando el idle empezó a correr
+  // precarga: el idle 720p apenas el intro ya está reproduciendo; las mejoras después, una a la vez
   const loUrl = useBlobUrl(idle720, introPlaying, toPhoto);
-  const hiUrl = useBlobUrl(idle4k, big && started, () => { /* sin 4K nos quedamos en 720p */ });
+  const layers = useRef<(HTMLVideoElement | null)[]>([]);
 
   // intro: arrancar; si no puede, foto
   useEffect(() => {
@@ -119,26 +117,19 @@ export function HeroMedia() {
     v.play().then(() => setPhase("idle"), toPhoto);
   }, [started]);
 
+  // el nivel anterior sale del DOM cuando el siguiente ya está dibujando
+  useEffect(() => {
+    if (kept >= level) return;
+    const t = window.setTimeout(() => setKept(level), 300);
+    return () => window.clearTimeout(t);
+  }, [level, kept]);
+
   // el intro sale del DOM cuando el idle ya está dibujando (o se cayó a la foto)
   useEffect(() => {
     if (phase === "intro" || introGone) return;
-    const t = window.setTimeout(() => setIntroGone(true), 300);
+    const t = window.setTimeout(() => setIntroGone(true), 800);
     return () => window.clearTimeout(t);
   }, [phase, introGone]);
-
-  // 4K listo: retoma el bucle en el mismo instante que el 720p y, ya corriendo, lo reemplaza
-  const hiStarted = useRef(false);
-  const onHiReady = () => {
-    const hi = idleHiRef.current, lo = idleLoRef.current;
-    if (!hi || hiStarted.current) return;
-    hiStarted.current = true;
-    if (lo && !lo.paused) hi.currentTime = lo.currentTime;
-    hi.play().catch(() => { /* seguimos en 720p */ });
-  };
-  const onHiPlaying = () => {
-    setHiLive(true);
-    window.setTimeout(() => setLoGone(true), 300);
-  };
 
   const showVideos = phase !== "photo";
 
@@ -158,15 +149,15 @@ export function HeroMedia() {
           disablePictureInPicture
           onPlaying={() => setIntroPlaying(true)}
           onError={toPhoto}
-          className={VIDEO_CLASS}
+          className={`${VIDEO_CLASS} ${started ? "hero-glitch-out" : ""}`}
           src={introSrc}
         />
       )}
 
-      {/* idle 720p: invisible hasta que arranca; se retira cuando el 4K lo reemplaza */}
-      {showVideos && loUrl && !loGone && (
+      {/* idle 720p: invisible hasta que arranca; se retira cuando el siguiente nivel lo reemplaza */}
+      {showVideos && loUrl && kept < 1 && (
         <video
-          ref={idleLoRef}
+          ref={(el) => { idleLoRef.current = el; layers.current[0] = el; }}
           muted
           loop
           playsInline
@@ -174,29 +165,69 @@ export function HeroMedia() {
           disablePictureInPicture
           onCanPlayThrough={() => setLoReady(true)}
           onError={toPhoto}
-          className={`${VIDEO_CLASS} ${started ? "opacity-100" : "opacity-0"}`}
+          className={`${VIDEO_CLASS} ${started ? "opacity-100 hero-glitch" : "opacity-0"}`}
           src={loUrl}
         />
       )}
 
-      {/* idle 4K: se carga detrás, invisible, y aparece de golpe (mismo frame) cuando ya está corriendo */}
-      {showVideos && hiUrl && (
-        <video
-          ref={idleHiRef}
-          muted
-          loop
-          playsInline
-          preload="auto"
-          disablePictureInPicture
-          onCanPlayThrough={onHiReady}
-          onPlaying={onHiPlaying}
-          onError={() => { /* seguimos en 720p */ }}
-          className={`${VIDEO_CLASS} ${hiLive ? "opacity-100" : "opacity-0"}`}
-          src={hiUrl}
+      {/* mejoras 1080p y 4K: se cargan detrás, invisibles, y aparecen de golpe (mismo frame) ya corriendo */}
+      {showVideos && started && upgrades.map((src, i) => kept < i + 2 && (
+        <IdleUpgrade
+          key={src}
+          src={src}
+          enabled={level === i}
+          videoRef={(el) => { layers.current[i + 1] = el; }}
+          getBase={() => layers.current[i] ?? null}
+          onLive={() => setLevel(i + 1)}
         />
-      )}
-
-      {phase !== "intro" && <LensGlare image={phase === "photo" ? PHOTO : VIDEO} rect={LENS} mask={lensMask} />}
+      ))}
     </>
+  );
+}
+
+/** Una mejora de calidad del idle: se baja completa, toma el frame en curso del nivel anterior y recién entonces se muestra. */
+function IdleUpgrade({ src, enabled, videoRef, getBase, onLive }: {
+  src: string;
+  enabled: boolean;
+  videoRef: (el: HTMLVideoElement | null) => void;
+  getBase: () => HTMLVideoElement | null;
+  onLive: () => void;
+}) {
+  const url = useBlobUrl(src, enabled, () => { /* sin esta mejora nos quedamos en el nivel actual */ });
+  const el = useRef<HTMLVideoElement | null>(null);
+  const [live, setLive] = useState(false);
+  const begun = useRef(false);
+
+  const onReady = () => {
+    const v = el.current;
+    if (!v || begun.current) return;
+    begun.current = true;
+    const play = () => {
+      v.play().then(() => {
+        const show = () => { setLive(true); onLive(); };
+        if ("requestVideoFrameCallback" in v) v.requestVideoFrameCallback(show); else show();
+      }).catch(() => { /* seguimos en el nivel actual */ });
+    };
+    const base = getBase();
+    const t = base && v.duration ? base.currentTime % v.duration : 0;
+    if (Math.abs(v.currentTime - t) < 0.001) { play(); return; }
+    v.addEventListener("seeked", play, { once: true });
+    v.currentTime = t;
+  };
+
+  if (!url) return null;
+  return (
+    <video
+      ref={(n) => { el.current = n; videoRef(n); }}
+      muted
+      loop
+      playsInline
+      preload="auto"
+      disablePictureInPicture
+      onCanPlayThrough={onReady}
+      onError={() => { /* seguimos en el nivel actual */ }}
+      className={`${VIDEO_CLASS} ${live ? "opacity-100" : "opacity-0"}`}
+      src={url}
+    />
   );
 }

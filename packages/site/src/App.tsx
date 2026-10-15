@@ -50,8 +50,8 @@ export function App() {
       <Hero
         layout="cover"
         media={<HeroMedia />}
-        title="Tu idea, hecha realidad."
-        highlight="hecha realidad."
+        title="Si lo imaginas se puede hacer realidad_"
+        highlight="se puede hacer realidad_"
         primaryCta={{ label: "Contanos tu idea", href: "#cta" }}
       />
 
